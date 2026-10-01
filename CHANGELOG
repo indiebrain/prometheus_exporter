@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Puma metrics for the stats Puma reports that were previously dropped: `puma_io_threads`, `puma_requests_total`, `puma_request_backlog_max` and `puma_reactor_max`.
+- Solid Queue instrumentation and collector, reporting execution counts, dispatcher lag, and per-queue backlog and latency.
 
 ### Changed
 

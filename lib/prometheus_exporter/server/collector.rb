@@ -27,6 +27,7 @@ module PrometheusExporter::Server
       register_collector(ShoryukenCollector.new)
       register_collector(ResqueCollector.new)
       register_collector(GoodJobCollector.new)
+      register_collector(SolidQueueCollector.new)
     end
 
     def register_collector(collector)

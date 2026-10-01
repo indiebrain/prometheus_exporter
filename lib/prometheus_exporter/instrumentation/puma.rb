@@ -5,6 +5,26 @@ require "json"
 # collects stats from puma
 module PrometheusExporter::Instrumentation
   class Puma < PeriodicStats
+    # Per-worker stats whose worker values add up to a meaningful total. Maps the
+    # name Puma reports to the name this gem exports.
+    SUMMED_WORKER_STATS = {
+      "backlog" => :request_backlog,
+      "running" => :running_threads,
+      "pool_capacity" => :thread_pool_capacity,
+      "max_threads" => :max_threads,
+      "busy_threads" => :busy_threads,
+      "io_threads" => :io_threads,
+      "requests_count" => :requests_count,
+    }.freeze
+
+    # Per-worker high water marks, which Puma resets every time it is asked for
+    # stats. Summing peaks would report a total no worker ever reached, so these
+    # carry the peak of the busiest worker instead.
+    PEAK_WORKER_STATS = {
+      "backlog_max" => :request_backlog_max,
+      "reactor_max" => :reactor_max,
+    }.freeze
+
     def self.start(client: nil, frequency: 30, labels: {})
       puma_collector = new(labels)
       client ||= PrometheusExporter::Client.default
@@ -56,18 +76,20 @@ module PrometheusExporter::Instrumentation
 
     private
 
+    # Which stats a worker reports varies by Puma version and configuration, so
+    # only the ones Puma actually reported are carried into the metric. A stat
+    # left out of the metric is left out of the exported metrics too, rather than
+    # being exported as a zero the server never measured.
     def collect_worker_status(metric, status)
-      metric[:request_backlog] ||= 0
-      metric[:running_threads] ||= 0
-      metric[:thread_pool_capacity] ||= 0
-      metric[:max_threads] ||= 0
-      metric[:busy_threads] ||= 0
+      SUMMED_WORKER_STATS.each do |stat, name|
+        next unless status.key?(stat)
+        metric[name] = (metric[name] || 0) + status[stat]
+      end
 
-      metric[:request_backlog] += status["backlog"]
-      metric[:running_threads] += status["running"]
-      metric[:thread_pool_capacity] += status["pool_capacity"]
-      metric[:max_threads] += status["max_threads"]
-      metric[:busy_threads] += status["busy_threads"]
+      PEAK_WORKER_STATS.each do |stat, name|
+        next unless status.key?(stat)
+        metric[name] = [metric[name] || 0, status[stat]].max
+      end
     end
   end
 end

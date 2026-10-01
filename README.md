@@ -621,8 +621,17 @@ end
 | Gauge | `puma_thread_pool_capacity` | Number of puma threads available at current scale                                                                   |
 | Gauge | `puma_max_threads`          | Number of puma threads at available at max scale                                                                    |
 | Gauge | `puma_busy_threads`         | Running - how many threads are waiting to receive work + how many requests are waiting for a thread to pick them up |
+| Gauge | `puma_io_threads`           | How many threads are serving requests marked as IO bound, which are allowed to exceed `max_threads` (Puma 8 and newer) |
+| Gauge | `puma_request_backlog_max`  | Peak number of requests waiting to be processed by a puma thread, since the previous collection                     |
+| Gauge | `puma_reactor_max`          | Peak number of requests buffering in puma's reactor, since the previous collection                                  |
+| Counter | `puma_requests_total`     | Number of requests puma has served since its workers booted                                                         |
 
 All metrics may have a `phase` label and all custom labels provided with the `labels` option.
+
+A metric is exported only when the running Puma reports the stat behind it, so an
+older Puma exports fewer metrics than the table lists. In clustered mode the
+per-worker stats are summed, except for the two peaks, which report the highest
+value any single worker reached.
 
 ### Resque metrics
 

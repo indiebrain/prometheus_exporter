@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Puma metrics for the stats Puma reports that were previously dropped: `puma_io_threads`, `puma_requests_total`, `puma_request_backlog_max` and `puma_reactor_max`.
+
 ### Changed
 
+- Puma metrics are exported only for the stats the running Puma reports, instead of defaulting a missing stat to zero. This also fixes `puma_busy_threads` being dropped when the exporter process does not have Puma loaded.
 - Reduce allocations when rendering histograms - Luiz Eduardo Kowalski.
 
 ### Removed

@@ -74,7 +74,7 @@ class PrometheusInstrumentationPumaTest < Minitest::Test
     assert_equal 10, metric[:max_threads]
     assert_equal 6, metric[:busy_threads]
     assert_equal 3, metric[:io_threads]
-    assert_equal 100, metric[:requests_count]
+    assert_equal 100, metric[:requests_total]
   end
 
   def test_clustered_mode_reports_the_peak_of_the_busiest_worker
@@ -89,7 +89,7 @@ class PrometheusInstrumentationPumaTest < Minitest::Test
 
     assert_equal 1, metric[:request_backlog]
     assert_equal 0, metric[:io_threads]
-    assert_equal 25, metric[:requests_count]
+    assert_equal 25, metric[:requests_total]
     assert_equal 2, metric[:request_backlog_max]
     assert_equal 3, metric[:reactor_max]
     refute_includes metric, :workers
@@ -101,7 +101,7 @@ class PrometheusInstrumentationPumaTest < Minitest::Test
     assert_equal 1, metric[:request_backlog]
     refute_includes metric, :busy_threads
     refute_includes metric, :io_threads
-    refute_includes metric, :requests_count
+    refute_includes metric, :requests_total
     refute_includes metric, :request_backlog_max
     refute_includes metric, :reactor_max
   end

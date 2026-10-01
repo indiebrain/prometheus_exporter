@@ -136,7 +136,7 @@ class PrometheusPumaCollectorTest < Minitest::Test
       "request_backlog_max" => 7,
       "io_threads" => 3,
       "reactor_max" => 9,
-      "requests_count" => 100,
+      "requests_total" => 100,
     )
 
     assert_collector_metric_lines [
@@ -153,7 +153,7 @@ class PrometheusPumaCollectorTest < Minitest::Test
       "type" => "puma",
       "pid" => "1000",
       "hostname" => "test1.example.com",
-      "requests_count" => 100,
+      "requests_total" => 100,
     )
 
     requests = collector.metrics.first
@@ -167,14 +167,14 @@ class PrometheusPumaCollectorTest < Minitest::Test
       "type" => "puma",
       "pid" => "1000",
       "hostname" => "test1.example.com",
-      "requests_count" => 100,
+      "requests_total" => 100,
     )
 
     collector.collect(
       "type" => "puma",
       "pid" => "1001",
       "hostname" => "test1.example.com",
-      "requests_count" => 60,
+      "requests_total" => 60,
     )
 
     assert_collector_metric_lines ["puma_requests_total 160"]

@@ -22,6 +22,10 @@ module PrometheusExporter::Server
         "Peak number of requests buffering in puma's reactor, since the previous collection.",
     }.freeze
 
+    PUMA_COUNTERS = {
+      requests_total: "Number of requests puma has served since its workers booted.",
+    }.freeze
+
     def initialize
       @puma_metrics = MetricsContainer.new(ttl: MAX_PUMA_METRIC_AGE)
       @puma_metrics.filter = ->(new_metric, old_metric) do
@@ -52,11 +56,16 @@ module PrometheusExporter::Server
           end
         end
 
-        # Every reporting process counts only the requests it served itself, so
-        # the counts add up across processes instead of overwriting each other
-        # the way a gauge does.
-        if requests = m["requests_count"]
-          requests_counter(metrics).observe(requests, labels)
+        # A counter observation adds to what is already there, so the processes
+        # sharing a set of labels report the total of the requests they each
+        # served. The metrics are rebuilt on every scrape, so that total is not
+        # carried from one scrape into the next.
+        PUMA_COUNTERS.each do |k, help|
+          k = k.to_s
+          if v = m[k]
+            c = metrics[k] ||= PrometheusExporter::Metric::Counter.new("puma_#{k}", help)
+            c.observe(v, labels)
+          end
         end
       end
 
@@ -65,15 +74,6 @@ module PrometheusExporter::Server
 
     def collect(obj)
       @puma_metrics << obj
-    end
-
-    private
-
-    def requests_counter(metrics)
-      metrics["requests_count"] ||= PrometheusExporter::Metric::Counter.new(
-        "puma_requests_total",
-        "Number of requests puma has served since its workers booted.",
-      )
     end
   end
 end

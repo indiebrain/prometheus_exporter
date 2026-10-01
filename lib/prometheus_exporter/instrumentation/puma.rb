@@ -14,7 +14,7 @@ module PrometheusExporter::Instrumentation
       "max_threads" => :max_threads,
       "busy_threads" => :busy_threads,
       "io_threads" => :io_threads,
-      "requests_count" => :requests_count,
+      "requests_count" => :requests_total,
     }.freeze
 
     # Per-worker high water marks, which Puma resets every time it is asked for
